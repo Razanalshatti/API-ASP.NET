@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection.Metadata.Ecma335;
 using WebApplication5.Models;
 namespace WebApplication5.Controllers
 {
@@ -17,23 +15,16 @@ namespace WebApplication5.Controllers
         }
 
         [HttpGet]
-        // [AllowAnonymous]
         public PageListResult<BankBranch> GetAll(int page = 1, string search = "")
         {
             if (search == "")
             {
                 return _bankContext.BankBranches
-                    //paging:
-                    //envolpe data about data :
-
-                    //.Skip((page-1)*3)
-                    //.Take(3)
+                   
                     .Select(b => new BankBranch
                     {
                         location = b.location,
                         locationURL = b.locationURL,
-
-
                     }).ToPageList(page, 1);
             }
             return _bankContext.BankBranches
@@ -42,8 +33,6 @@ namespace WebApplication5.Controllers
                      {
                          location = b.location,
                          locationURL = b.locationURL,
-
-
                      }).ToPageList(page, 1);
         }
         [HttpGet("{id}")]
@@ -58,9 +47,6 @@ namespace WebApplication5.Controllers
             {
                 location = bank.location,
                 locationURL = bank.locationURL,
-
-
-
             };
         }
 
@@ -68,13 +54,10 @@ namespace WebApplication5.Controllers
         public IActionResult Add(AddBankRequest req)
         {
             var newBank = new BankBranch()
-            // _bankContext.BankBranches.Add(new BankBranches()
             {
                 location = req.location,
                 locationURL = req.locationURL,
                 branchManager = "",
-
-
             };
             _bankContext.BankBranches.Add(newBank);
             _bankContext.SaveChanges();
@@ -85,7 +68,6 @@ namespace WebApplication5.Controllers
         [HttpPatch("{id}")]
         public IActionResult Edit(int id, AddBankRequest req)
         {
-
             var bank = _bankContext.BankBranches.Find(id);
             bank.location = req.location;
             bank.locationURL = req.locationURL;
@@ -93,8 +75,6 @@ namespace WebApplication5.Controllers
             _bankContext.SaveChanges();
 
             return Created(nameof(DetailsBank), new { Id = bank.Id });
-
-
         }
 
         [HttpDelete("{id}")]
@@ -110,7 +90,6 @@ namespace WebApplication5.Controllers
             _bankContext.SaveChanges();
 
             return Ok();
-
         }
     }
 }

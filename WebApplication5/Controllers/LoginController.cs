@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication5.Models;
 
 namespace WebApplication5.Controllers
@@ -18,9 +16,7 @@ namespace WebApplication5.Controllers
         {
             tokenServices = configuration;
             this.context = bankcontext;
-
         }
-
 
         [HttpPost("Register")]
         public IActionResult Register([FromBody] UserRegistration userRegistration)

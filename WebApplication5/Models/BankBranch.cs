@@ -1,7 +1,7 @@
 ﻿namespace WebApplication5.Models
 {
     public class BankBranch
-    {
+    { 
         public int Id { get; set; }
         public string location { get; set; }
         public string locationURL { get; set; }

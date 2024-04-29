@@ -14,7 +14,6 @@ namespace WebApplication5.Models
         {
             _configuration = configuration;
             this.context = bankcontext;
-
         }
 
         public (bool IsValid, string Token) GenerateToken(string username, string password)
@@ -23,24 +22,19 @@ namespace WebApplication5.Models
             var userAccount = context.UserAccounts.FirstOrDefault(x => x.Username == username);
             if (userAccount == null)
             {
-
                 return (false, "");
-
             }
             var validPassword = BCrypt.Net.BCrypt.EnhancedVerify(password, userAccount.Password);
             if (!validPassword)
             {
-
                 return (false, "");
-
             }
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            //from here: =>
             var claims = new[]
-            {
+        {
         new Claim(TokenClaimsConstant.Username, username),
         new Claim(TokenClaimsConstant.UserId, userAccount.Id.ToString()),
         new Claim(ClaimTypes.Role, "User")

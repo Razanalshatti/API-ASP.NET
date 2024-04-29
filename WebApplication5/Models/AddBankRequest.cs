@@ -11,7 +11,6 @@ namespace WebApplication5.Models
         [Required]
         public string BranchManager { get; set; }
 
-        //custom validation balance : kd ,+ 50kd and rules on the vali 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (location.StartsWith("N"))

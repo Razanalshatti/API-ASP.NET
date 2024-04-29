@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication5.Models;
 
 namespace WebApplication5.Controllers
@@ -21,23 +20,14 @@ namespace WebApplication5.Controllers
         {
             return _bankContext.BankBranches.Select(b => new BankBranch
             {
-
                 location = b.location,
                 locationURL = b.locationURL,
-
-
-
             }).ToList();
         }
 
 
         [ProducesResponseType(typeof(Employee), 200)]
         [ProducesResponseType(404)]
-
-
-
-
-
         [HttpGet("{id}")]
         public ActionResult<EmployeeResponse> Details(int id)
         {
@@ -51,10 +41,6 @@ namespace WebApplication5.Controllers
                 Name = employee.Name,
                 civilId = employee.civilId,
                 Position = employee.Position,
-
-
-
-
             };
         }
 
@@ -68,9 +54,6 @@ namespace WebApplication5.Controllers
                 Position = req.position,
                 civilId = req.civilId,
                 BankBranch = bank,
-
-
-
             };
             _bankContext.Employees.Add(newEmployee);
             _bankContext.SaveChanges();
@@ -81,7 +64,6 @@ namespace WebApplication5.Controllers
         [HttpPatch("{id}")]
         public IActionResult Edit(int id, AddEmployeeRequest req)
         {
-
             var employee = _bankContext.Employees.Find(id);
             employee.Name = req.Name;
             employee.Position = req.position;
@@ -90,8 +72,6 @@ namespace WebApplication5.Controllers
             _bankContext.SaveChanges();
 
             return Created(nameof(Details), new { Id = employee.Id });
-
-
         }
 
         [HttpDelete("{id}")]
@@ -106,7 +86,6 @@ namespace WebApplication5.Controllers
             _bankContext.SaveChanges();
 
             return Ok();
-
         }
     }
 }
