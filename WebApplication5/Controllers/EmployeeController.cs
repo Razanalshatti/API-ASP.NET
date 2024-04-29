@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using WebApplication5.Models;
 
 namespace WebApplication5.Controllers
@@ -7,100 +7,106 @@ namespace WebApplication5.Controllers
     [Route("api/employee")]
     [ApiController]
     public class EmployeeController : ControllerBase
-    {
-        private readonly BankContext _context;
 
-        public EmployeeController(BankContext context)
+    {
+        private readonly BankContext _bankContext;
+        // NEW code _bankContext is the injection :we place it all in >
+        public EmployeeController(BankContext Context)
         {
-            _context = context;
+            _bankContext = Context;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
+        public List<BankBranch> GetAll()
         {
-            return await _context.Employees.ToListAsync();
+            return _bankContext.BankBranches.Select(b => new BankBranch
+            {
+
+                location = b.location,
+                locationURL = b.locationURL,
+
+
+
+            }).ToList();
         }
+
+
+        [ProducesResponseType(typeof(Employee), 200)]
+        [ProducesResponseType(404)]
+
+
+
+
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Employee>> GetEmployee(int id)
+        public ActionResult<EmployeeResponse> Details(int id)
         {
-            var employee = await _context.Employees.FindAsync(id);
-
+            var employee = _bankContext.Employees.Find(id);
             if (employee == null)
             {
                 return NotFound();
             }
-
-            return employee;
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<Employee>> Add(AddEmployeeRequest request)
-        {
-            var employee = new Employee
+            return new EmployeeResponse
             {
-                Name = request.Name,
-                civilId = request.civilId,
-                Position = request.position
+                Name = employee.Name,
+                civilId = employee.civilId,
+                Position = employee.Position,
+
+
+
+
             };
-
-            _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetEmployee", new { id = employee.Id }, employee);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> EditEmployee(int id, AddEmployeeRequest request)
+        [HttpPost("{id}")]
+        public IActionResult Add(int id, AddEmployeeRequest req)
         {
-            var employee = await _context.Employees.FindAsync(id);
-
-            if (employee == null)
+            var bank = _bankContext.BankBranches.Find(id);
+            var newEmployee = new Employee()
             {
-                return NotFound();
-            }
+                Name = req.Name,
+                Position = req.position,
+                civilId = req.civilId,
+                BankBranch = bank,
 
-            employee.Name = request.Name;
-            employee.civilId = request.civilId;
-            employee.Position = request.position;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EmployeeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return NoContent();
+            };
+            _bankContext.Employees.Add(newEmployee);
+            _bankContext.SaveChanges();
+
+            return Created(nameof(Details), new { Id = newEmployee.Id });
+        }
+
+        [HttpPatch("{id}")]
+        public IActionResult Edit(int id, AddEmployeeRequest req)
+        {
+
+            var employee = _bankContext.Employees.Find(id);
+            employee.Name = req.Name;
+            employee.Position = req.position;
+            employee.civilId = req.civilId;
+
+            _bankContext.SaveChanges();
+
+            return Created(nameof(Details), new { Id = employee.Id });
+
+
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEmployee(int id)
+        public IActionResult Delete(int id)
         {
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null)
+            var bank = _bankContext.BankBranches.Find(id);
+            if (bank == null)
             {
-                return NotFound();
+                return BadRequest();
             }
+            _bankContext.BankBranches.Remove(bank);
+            _bankContext.SaveChanges();
 
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
+            return Ok();
 
-            return NoContent();
-        }
-
-        private bool EmployeeExists(int id)
-        {
-            return _context.Employees.Any(e => e.Id == id);
         }
     }
 }

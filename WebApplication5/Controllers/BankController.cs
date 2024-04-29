@@ -1,56 +1,116 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Reflection.Metadata.Ecma335;
 using WebApplication5.Models;
-
 namespace WebApplication5.Controllers
 {
     [Route("api/bank")]
     [ApiController]
+    [Authorize]
     public class BankController : ControllerBase
     {
-        private readonly BankContext _context;
-
-        public BankController(BankContext context)
+        private readonly BankContext _bankContext;
+        public BankController(BankContext Context)
         {
-            _context = context;
+            _bankContext = Context;
         }
 
-        
         [HttpGet]
-        public List<BankBranch> GetAll()
+        // [AllowAnonymous]
+        public PageListResult<BankBranch> GetAll(int page = 1, string search = "")
         {
-            return _context.BankBranches.ToList();
+            if (search == "")
+            {
+                return _bankContext.BankBranches
+                    //paging:
+                    //envolpe data about data :
+
+                    //.Skip((page-1)*3)
+                    //.Take(3)
+                    .Select(b => new BankBranch
+                    {
+                        location = b.location,
+                        locationURL = b.locationURL,
+
+
+                    }).ToPageList(page, 1);
+            }
+            return _bankContext.BankBranches
+                    .Where(r => r.location.StartsWith(search))
+                     .Select(b => new BankBranch
+                     {
+                         location = b.location,
+                         locationURL = b.locationURL,
+
+
+                     }).ToPageList(page, 1);
         }
-
-        
         [HttpGet("{id}")]
-        public ActionResult<BankBranch> GetBankBranch(int id)
+        public ActionResult<BankBranch> DetailsBank(int id)
         {
-            var bankBranch = _context.BankBranches.FirstOrDefault(b => b.Id == id);
-
-            if (bankBranch == null)
+            var bank = _bankContext.BankBranches.Find(id);
+            if (bank == null)
             {
                 return NotFound();
             }
+            return new BankBranch
+            {
+                location = bank.location,
+                locationURL = bank.locationURL,
 
-            
-            bankBranch.Employees = _context.Employees.Where(e => e.BankBranchId == id).ToList();
 
-            return bankBranch;
+
+            };
         }
 
-        
         [HttpPost]
         public IActionResult Add(AddBankRequest req)
         {
-            _context.BankBranches.Add(new BankBranch()
+            var newBank = new BankBranch()
+            // _bankContext.BankBranches.Add(new BankBranches()
             {
                 location = req.location,
                 locationURL = req.locationURL,
-                branchManager = ""
-            });
-            _context.SaveChanges();
+                branchManager = "",
 
-            return Created();
+
+            };
+            _bankContext.BankBranches.Add(newBank);
+            _bankContext.SaveChanges();
+
+            return Created(nameof(DetailsBank), new { Id = newBank.Id });
+        }
+
+        [HttpPatch("{id}")]
+        public IActionResult Edit(int id, AddBankRequest req)
+        {
+
+            var bank = _bankContext.BankBranches.Find(id);
+            bank.location = req.location;
+            bank.locationURL = req.locationURL;
+            bank.branchManager = req.BranchManager;
+            _bankContext.SaveChanges();
+
+            return Created(nameof(DetailsBank), new { Id = bank.Id });
+
+
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Delete(int id)
+        {
+            var bank = _bankContext?.BankBranches.Find(id);
+            if (bank == null)
+            {
+                return BadRequest();
+            }
+            _bankContext?.BankBranches.Remove(bank);
+            _bankContext.SaveChanges();
+
+            return Ok();
+
         }
     }
 }
